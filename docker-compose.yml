@@ -1,0 +1,137 @@
+version: '3.8'
+
+services:
+  # Backend API Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - NETWORK_ID=${NETWORK_ID:-base-sepolia}
+      - RPC_URL=${RPC_URL:-https://sepolia.base.org}
+      - PAYMENT_ADDRESS=${PAYMENT_ADDRESS}
+      - CDP_API_KEY_ID=${CDP_API_KEY_ID}
+      - CDP_API_KEY_SECRET=${CDP_API_KEY_SECRET}
+      - CDP_PROJECT_ID=${CDP_PROJECT_ID}
+      - HYPERBOLIC_API_KEY=${HYPERBOLIC_API_KEY}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-30000}
+      - DEBUG=${DEBUG:-false}
+    volumes:
+      - ./backend/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - redis
+    networks:
+      - x402-network
+
+  # Frontend Next.js Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3001}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_MARKETPLACE_URL=${NEXT_PUBLIC_MARKETPLACE_URL:-http://localhost:3001}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - backend
+    networks:
+      - x402-network
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes
+    networks:
+      - x402-network
+
+  # Nginx reverse proxy (for production)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - x402-network
+    profiles:
+      - production
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  x402-network:
+    driver: bridge
+
+# Development override
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+---
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DEBUG=true
+    command: npm run dev
+    profiles:
+      - dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    profiles:
+      - dev

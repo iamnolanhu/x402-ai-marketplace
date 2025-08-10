@@ -1,0 +1,47 @@
+{
+  "name": "x402-ai-marketplace",
+  "version": "1.0.0",
+  "description": "AI Marketplace with x402 payment protocol integration",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "contracts",
+    "sdk"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "npm run build --workspaces",
+    "start": "npm run start -w backend",
+    "install:all": "npm install --workspaces",
+    "clean": "npm run clean --workspaces",
+    "test-client": "tsx test-client.ts",
+    "sdk:build": "npm run build -w sdk",
+    "sdk:dev": "npm run dev -w sdk",
+    "quickstart": "./start.sh",
+    "demo": "./start.sh",
+    "check": "./start.sh --check-only",
+    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "docker:prod": "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v --remove-orphans && docker system prune -f",
+    "setup:env": "cp .env.example .env && echo 'Please edit .env with your actual values'",
+    "health": "curl -f http://localhost:3001/health && curl -f http://localhost:3000",
+    "logs": "concurrently \"npm run logs -w backend\" \"npm run logs -w frontend\"",
+    "verify": "./verify.sh",
+    "deploy": "./deploy.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "viem": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

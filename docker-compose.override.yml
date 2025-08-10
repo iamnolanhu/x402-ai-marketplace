@@ -1,0 +1,53 @@
+# Docker Compose Override for Local Development
+# This file is automatically loaded by docker-compose
+# Use this for local-specific settings that shouldn't be in version control
+
+version: '3.8'
+
+services:
+  backend:
+    # Mount local env file for development
+    env_file:
+      - .env
+    # Enable debug logging in development
+    environment:
+      - DEBUG=true
+      - LOG_LEVEL=debug
+    # Expose additional ports for debugging
+    ports:
+      - "9229:9229"  # Node.js debug port
+    
+  frontend:
+    # Mount local env file
+    env_file:
+      - .env
+    # Enable debug mode
+    environment:
+      - NODE_ENV=development
+
+  # Optional monitoring services for development
+  portainer:
+    image: portainer/portainer-ce
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Redis admin interface
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    profiles:
+      - monitoring
+
+volumes:
+  portainer-data:
