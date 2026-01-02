@@ -160,6 +160,9 @@ Dockerfile.dev
 # Deployment
 .vercel
 .netlify
+.vercel.json.backup
+*.env.production
+.env.production.local
 
 # Serverless
 .serverless/
@@ -180,6 +183,14 @@ accounts/
 # Local config overrides
 .env.override
 .config.local.json
+
+# Vercel build artifacts
+.next/standalone/
+.next/static/
+.next/cache/
+frontend/.next/standalone/
+backend/dist/
+backend/api/
 
 # System files
 *.DS_Store
@@ -205,8 +216,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
