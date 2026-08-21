@@ -1,5 +1,7 @@
 # 🤖 x402 AI Marketplace
 
+![x402 AI Marketplace](.github/hero.png)
+
 > **CodeNYC/Coinbase Hackathon 2025** - A decentralized AI marketplace with x402 payment protocol integration
 
 **🏆 Hackathon Track**: x402 + CDP Wallet - Revenue-generating AI agents with seamless crypto payments
